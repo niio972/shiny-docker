@@ -1,0 +1,40 @@
+FROM openanalytics/r-base
+
+LABEL maintainer "Arnaud Charleroy <arnaud.charleroy@inra.fr>"
+
+ENV APP_HOST_PATH=.
+
+ENV R_LIBS=https://cloud.r-project.org/
+
+# system libraries of general use
+RUN apt-get update && apt-get install -y \
+    sudo \
+    pandoc \
+    pandoc-citeproc \
+    libcurl4-gnutls-dev \
+    libcairo2-dev \
+    libxt-dev \
+    libssl-dev \
+    libssh2-1-dev \
+    libssl1.0.0
+
+# system library dependency for the euler app
+RUN apt-get update && apt-get install -y \
+    libmpfr-dev
+
+# copy the app to the image
+RUN mkdir /root/app
+ADD $APP_HOST_PATH /root/app
+
+# basic shiny functionality
+RUN R -e "install.packages(c('devtools','shiny', 'rmarkdown'), repos=Sys.getenv('R_LIBS')"
+
+# install dependencies of the app
+RUN R -e "setwd('/root/app');setdevtools::install_deps(dependencies = TRUE,lib = Sys.getenv('R_LIBS'), upgrade = FALSE)'"
+
+
+COPY Rprofile.site /usr/lib/R/etc/
+
+EXPOSE 3838
+
+CMD ["R", "-e", "shiny::runApp('/root/app')"]
