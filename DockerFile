@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
 
 # copy the app to the image
 RUN mkdir /root/app
-ADD $APP_HOST_PATH /root/app
+COPY $APP_HOST_PATH /root/app
 
 # basic shiny functionality
 RUN R -e "install.packages(c('devtools','shiny', 'rmarkdown'), repos=Sys.getenv('R_LIBS')"
